@@ -51,7 +51,7 @@ module RailsEventStoreActiveRecord
     end
 
     def event_store_events_columns
-      %w(id event_type metadata data created_at)
+      %w(id event_id event_type metadata data created_at)
     end
 
     def event_store_events_in_streams_columns
