@@ -178,17 +178,17 @@ module RailsEventStoreActiveRecord
       EventInStream.create!(
         stream:   "all",
         position: 1,
-        event_id: e1.id,
+        event_id: e1.event_id,
       )
       EventInStream.create!(
         stream:   "all",
         position: 0,
-        event_id: e2.id,
+        event_id: e2.event_id,
       )
       EventInStream.create!(
         stream:   "all",
         position: 2,
-        event_id: e3.id,
+        event_id: e3.event_id,
       )
 
       expect(repository.read(specification.to(u3).limit(3).result).map(&:event_id)).to eq([u1,u2])
