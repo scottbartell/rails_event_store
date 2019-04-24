@@ -40,8 +40,8 @@ RSpec.describe "database schema migrations" do
     end
   end
 
-  specify "migrate from v0.35.0 to master" do
-    validate_migration('Gemfile.0_35_0', 'Gemfile.master',
+  specify "migrate from v0.39.0 to master" do
+    validate_migration('Gemfile.0_39_0', 'Gemfile.master',
       source_template_name: 'create_event_store_events') do
       run_code(<<~EOF, gemfile: 'Gemfile.0_35_0')
       DummyEvent = Class.new(RubyEventStore::Event)
