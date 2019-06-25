@@ -15,6 +15,10 @@ module RubyEventStore
           subscriber_instance.respond_to?(:call)
         end
       end
+
+      def inspect
+        "#<#{self.class}:0x#{__id__.to_s(16)}>"
+      end
     end
   end
 end

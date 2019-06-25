@@ -25,6 +25,10 @@ module RailsEventStore
       @scheduler.verify(subscriber)
     end
 
+    def inspect
+      "#<#{self.class}:0x#{__id__.to_s(16)} scheduler=#{@scheduler.inspect}>"
+    end
+
     private
     class AsyncRecord
       def initialize(dispatcher, schedule_proc)

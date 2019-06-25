@@ -33,8 +33,10 @@ module RubyEventStore
         subscriptions.add_thread_global_subscription(subscriber)
       end
 
+      attr_reader :dispatcher
+
       private
-      attr_reader :subscriptions, :dispatcher
+      attr_reader :subscriptions
 
       def verify_subscription(subscriber)
         raise SubscriberNotExist, "subscriber must be first argument or block" unless subscriber
