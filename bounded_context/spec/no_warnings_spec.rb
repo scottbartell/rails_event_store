@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
-module RubyEventStore
+module BoundedContext
   RSpec.describe 'no warnings' do
     specify do
       expect(bounded_context_warnings).to eq([])

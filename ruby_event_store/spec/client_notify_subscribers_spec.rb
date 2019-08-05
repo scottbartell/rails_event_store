@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'time'
 
 module RubyEventStore
-  RSpec.describe "Client#notify_subscribers" do
+  RSpec.describe Client do
     Test1DomainEvent = Class.new(RubyEventStore::Event)
     Test2DomainEvent = Class.new(RubyEventStore::Event)
     Test3DomainEvent = Class.new(RubyEventStore::Event)
@@ -49,7 +49,7 @@ module RubyEventStore
       end
     end
 
-    subject(:client) { RubyEventStore::Client.new(repository: InMemoryRepository.new) }
+    subject(:client) { RubyEventStore::Client.new(repository: InMemoryRepository.new, mapper: Mappers::NullMapper.new) }
 
     it 'notifies subscribed handlers' do
       handler         = TestHandler.new

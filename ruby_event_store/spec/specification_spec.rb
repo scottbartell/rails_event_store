@@ -375,18 +375,18 @@ module RubyEventStore
 
     specify do
       batch_size = 100
-      records = (batch_size * 10).times.map { test_record }
+      records = (batch_size * 2).times.map { test_record }
       repository.append_to_stream(records, Stream.new("batch"), ExpectedVersion.none)
 
-      expect(specification.stream("batch").in_batches.each_batch.to_a.size).to eq(10)
+      expect(specification.stream("batch").in_batches.each_batch.to_a.size).to eq(2)
     end
 
     specify do
       batch_size = 100
-      records = (batch_size * 10).times.map { test_record }
+      records = (batch_size * 2).times.map { test_record }
       repository.append_to_stream(records, Stream.new("batch"), ExpectedVersion.none)
 
-      expect(specification.stream("batch").in_batches.to_a.size).to eq(1000)
+      expect(specification.stream("batch").in_batches.to_a.size).to eq(200)
     end
 
     specify do
@@ -651,7 +651,7 @@ module RubyEventStore
     end
 
     let(:repository)    { InMemoryRepository.new }
-    let(:mapper)        { Mappers::Default.new }
+    let(:mapper)        { Mappers::NullMapper.new }
     let(:reader)        { SpecificationReader.new(repository, mapper) }
     let(:specification) { Specification.new(reader) }
     let(:event_id)      { SecureRandom.uuid }

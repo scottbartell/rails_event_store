@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'aggregate_root'
 require 'ruby_event_store'
 require_relative '../../support/helpers/rspec_defaults'
@@ -24,8 +26,9 @@ class Order
   include AggregateRoot
   include Orders::Events
 
-  def initialize
+  def initialize(uuid)
     @status = :draft
+    @uuid   = uuid
   end
 
   def create
@@ -37,6 +40,7 @@ class Order
   end
 
   attr_accessor :status
+
   private
 
   def apply_order_created(_event)
@@ -65,20 +69,21 @@ class CustomOrderApplyStrategy
 end
 
 class OrderWithCustomStrategy
-  include AggregateRoot.with_strategy(->{ CustomOrderApplyStrategy.new })
+  include AggregateRoot.with_strategy(-> { CustomOrderApplyStrategy.new })
 
   def initialize
     @status = :draft
   end
 
   attr_accessor :status
+
   private
 
-  def custom_created(event)
+  def custom_created(_event)
     @status = :created
   end
 
-  def custom_expired(event)
+  def custom_expired(_event)
     @status = :expired
   end
 end

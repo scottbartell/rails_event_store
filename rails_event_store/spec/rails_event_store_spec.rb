@@ -45,7 +45,7 @@ RSpec.describe RailsEventStore do
     prepend RailsEventStore::CorrelatedHandler
     prepend RailsEventStore::AsyncHandler
 
-    def perform(event)
+    def perform(_event)
       self.metadata = Rails.configuration.event_store.metadata
     end
   end
@@ -63,9 +63,7 @@ RSpec.describe RailsEventStore do
   let(:event_store) { RailsEventStore::Client.new }
 
   before do
-    rails = double("Rails", configuration: Rails::Application::Configuration.new)
-    stub_const("Rails", rails)
-    Rails.configuration.event_store = event_store
+    allow(Rails.configuration).to receive(:event_store).and_return(event_store)
     ActiveJob::Base.queue_adapter = SimpleAdapter
   end
 

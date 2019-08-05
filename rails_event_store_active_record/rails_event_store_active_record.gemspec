@@ -25,8 +25,8 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'ruby_event_store', '= 0.39.0'
+  spec.add_dependency 'ruby_event_store', '= 0.41.0'
   spec.add_dependency 'activesupport', '>= 3.0'
   spec.add_dependency 'activemodel', '>= 3.0'
-  spec.add_dependency 'activerecord-import', '~> 0.26'
+  spec.add_dependency 'activerecord-import', '>= 1.0.2'
 end

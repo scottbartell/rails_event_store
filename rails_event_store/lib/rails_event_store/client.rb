@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 module RailsEventStore
   class Client < RubyEventStore::Client
     attr_reader :request_metadata
 
     def initialize(repository: RailsEventStoreActiveRecord::EventRepository.new,
                    mapper: RubyEventStore::Mappers::Default.new,
-                   subscriptions: RubyEventStore::PubSub::Subscriptions.new,
+                   subscriptions: RubyEventStore::Subscriptions.new,
                    dispatcher: RubyEventStore::ComposedDispatcher.new(
                      RubyEventStore::ImmediateAsyncDispatcher.new(scheduler: ActiveJobScheduler.new),
-                     RubyEventStore::PubSub::Dispatcher.new),
+                     RubyEventStore::Dispatcher.new),
                    request_metadata: default_request_metadata)
       super(repository: RubyEventStore::InstrumentedRepository.new(repository, ActiveSupport::Notifications),
             mapper: RubyEventStore::Mappers::InstrumentedMapper.new(mapper, ActiveSupport::Notifications),

@@ -1,10 +1,13 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe AggregateRoot do
-  let(:event_store) { RubyEventStore::Client.new(repository: RubyEventStore::InMemoryRepository.new) }
+  let(:event_store) { RubyEventStore::Client.new(repository: RubyEventStore::InMemoryRepository.new, mapper: RubyEventStore::Mappers::NullMapper.new) }
+  let(:uuid)        { SecureRandom.uuid }
 
   it "should have ability to apply event on itself" do
-    order = Order.new
+    order = Order.new(uuid)
     order_created = Orders::Events::OrderCreated.new
 
     expect(order).to receive(:"apply_order_created").with(order_created).and_call_original
@@ -14,116 +17,12 @@ RSpec.describe AggregateRoot do
   end
 
   it "brand new aggregate does not have any unpublished events" do
-    order = Order.new
+    order = Order.new(uuid)
     expect(order.unpublished_events.to_a).to be_empty
-  end
-
-  it "should have no unpublished events when loaded" do
-    stream = "any-order-stream"
-    order_created = Orders::Events::OrderCreated.new
-    event_store.publish(order_created, stream_name: stream)
-
-    repository = AggregateRoot::Repository.new(event_store)
-    order = repository.load(Order.new, stream)
-    expect(order.status).to eq :created
-    expect(order.unpublished_events.to_a).to be_empty
-  end
-
-  it "should publish all unpublished events on store" do
-    stream = "any-order-stream"
-    order_created = Orders::Events::OrderCreated.new
-    order_expired = Orders::Events::OrderExpired.new
-
-    repository = AggregateRoot::Repository.new(event_store)
-    order = Order.new
-    order.apply(order_created)
-    order.apply(order_expired)
-    expect(event_store).not_to receive(:publish).with(kind_of(Enumerator), any_args)
-    expect(event_store).not_to receive(:publish).with(kind_of(Set), any_args)
-    expect(event_store).to receive(:publish).with([order_created, order_expired], stream_name: stream, expected_version: -1).and_call_original
-    repository.store(order, stream)
-    expect(order.unpublished_events.to_a).to be_empty
-  end
-
-  it "updates aggregate stream position and uses it in subsequent publish call as expected_version" do
-    stream = "any-order-stream"
-    order_created = Orders::Events::OrderCreated.new
-
-    repository = AggregateRoot::Repository.new(event_store)
-    order = Order.new
-    order.apply(order_created)
-    expect(event_store).to receive(:publish).with([order_created], stream_name: stream, expected_version: -1).and_call_original
-    repository.store(order, stream)
-
-    order_expired = Orders::Events::OrderExpired.new
-    order.apply(order_expired)
-    expect(event_store).to receive(:publish).with([order_expired], stream_name: stream, expected_version: 0).and_call_original
-    repository.store(order, stream)
-  end
-
-  it "should work with provided event_store" do
-    with_default_event_store(double(:some_other_event_store)) do
-      stream = "any-order-stream"
-      repository = AggregateRoot::Repository.new(event_store)
-      order = repository.load(Order.new, stream)
-      order_created = Orders::Events::OrderCreated.new
-      order.apply(order_created)
-      repository.store(order, stream)
-
-      expect(event_store.read.stream(stream).to_a).to eq [order_created]
-
-      restored_order = repository.load(Order.new, stream)
-      expect(restored_order.status).to eq :created
-      order_expired = Orders::Events::OrderExpired.new
-      restored_order.apply(order_expired)
-      repository.store(restored_order, stream)
-
-      expect(event_store.read.stream(stream).to_a).to eq [order_created, order_expired]
-
-      restored_again_order = repository.load(Order.new, stream)
-      expect(restored_again_order.status).to eq :expired
-    end
-  end
-
-  it "should use default client if event_store not provided" do
-    with_default_event_store(event_store) do
-      stream = "any-order-stream"
-      repository = AggregateRoot::Repository.new
-      order = repository.load(Order.new, stream)
-      order_created = Orders::Events::OrderCreated.new
-      order.apply(order_created)
-      repository.store(order, stream)
-
-      expect(event_store.read.stream(stream).to_a).to eq [order_created]
-
-      restored_order = repository.load(Order.new, stream)
-      expect(restored_order.status).to eq :created
-      order_expired = Orders::Events::OrderExpired.new
-      restored_order.apply(order_expired)
-      repository.store(restored_order, stream)
-
-      expect(event_store.read.stream(stream).to_a).to eq [order_created, order_expired]
-
-      restored_again_order = repository.load(Order.new, stream)
-      expect(restored_again_order.status).to eq :expired
-    end
-  end
-
-  it "if loaded from some stream should store to the same stream is no other stream specified" do
-    with_default_event_store(event_store) do
-      stream = "any-order-stream"
-      repository = AggregateRoot::Repository.new
-      order = repository.load(Order.new, stream)
-      order_created = Orders::Events::OrderCreated.new
-      order.apply(order_created)
-      repository.store(order, stream)
-
-      expect(event_store.read.stream(stream).to_a).to eq [order_created]
-    end
   end
 
   it "should receive a method call based on a default apply strategy" do
-    order = Order.new
+    order = Order.new(uuid)
     order_created = Orders::Events::OrderCreated.new
 
     order.apply(order_created)
@@ -131,15 +30,15 @@ RSpec.describe AggregateRoot do
   end
 
   it "should raise error for missing apply method based on a default apply strategy" do
-    order = Order.new
+    order = Order.new(uuid)
     spanish_inquisition = Orders::Events::SpanishInquisition.new
-    expect{ order.apply(spanish_inquisition) }.to raise_error(AggregateRoot::MissingHandler, "Missing handler method apply_spanish_inquisition on aggregate Order")
+    expect { order.apply(spanish_inquisition) }.to raise_error(AggregateRoot::MissingHandler, "Missing handler method apply_spanish_inquisition on aggregate Order")
   end
 
   it "should ignore missing apply method based on a default non-strict apply strategy" do
     order = OrderWithNonStrictApplyStrategy.new
     spanish_inquisition = Orders::Events::SpanishInquisition.new
-    expect{ order.apply(spanish_inquisition) }.to_not raise_error
+    expect { order.apply(spanish_inquisition) }.to_not raise_error
   end
 
   it "should receive a method call based on a custom strategy" do
@@ -151,7 +50,7 @@ RSpec.describe AggregateRoot do
   end
 
   it "should return applied events" do
-    order = Order.new
+    order = Order.new(uuid)
     created = Orders::Events::OrderCreated.new
     expired = Orders::Events::OrderExpired.new
 
@@ -160,7 +59,7 @@ RSpec.describe AggregateRoot do
   end
 
   it "should return only applied events" do
-    order = Order.new
+    order = Order.new(uuid)
     created = Orders::Events::OrderCreated.new
     order.apply(created)
 
@@ -170,7 +69,7 @@ RSpec.describe AggregateRoot do
   end
 
   it "#unpublished_events method is public" do
-    order = Order.new
+    order = Order.new(uuid)
     expect(order.unpublished_events.to_a).to eq([])
 
     created = Orders::Events::OrderCreated.new
@@ -183,22 +82,13 @@ RSpec.describe AggregateRoot do
   end
 
   it "#unpublished_events method does not allow modifying internal state directly" do
-    order = Order.new
+    order = Order.new(uuid)
     expect(order.unpublished_events.respond_to?(:<<)).to eq(false)
     expect(order.unpublished_events.respond_to?(:clear)).to eq(false)
     expect(order.unpublished_events.respond_to?(:push)).to eq(false)
     expect(order.unpublished_events.respond_to?(:shift)).to eq(false)
     expect(order.unpublished_events.respond_to?(:pop)).to eq(false)
     expect(order.unpublished_events.respond_to?(:unshift)).to eq(false)
-  end
-
-  it "loads events from given stream" do
-    event_store.publish(Orders::Events::OrderCreated.new, stream_name: "Order$1")
-    event_store.publish(Orders::Events::OrderExpired.new, stream_name: "Order$2")
-
-    repository = AggregateRoot::Repository.new(event_store)
-    order = repository.load(Order.new, "Order$1")
-    expect(order.status).to eq :created
   end
 
   describe ".on" do
@@ -302,27 +192,6 @@ RSpec.describe AggregateRoot do
           end
         end
       end.to raise_error(ArgumentError, "Anonymous class is missing name")
-    end
-  end
-
-  it "uses with_aggregate to simplify aggregate usage" do
-    event_store.publish(Orders::Events::OrderCreated.new, stream_name: "Order$1")
-    order_expired = Orders::Events::OrderExpired.new
-    expect(event_store).to receive(:publish).with([order_expired], stream_name: "Order$1", expected_version: 0).and_call_original
-    repository = AggregateRoot::Repository.new(event_store)
-    repository.with_aggregate(Order.new, "Order$1") do |order|
-      order.apply(order_expired)
-    end
-  end
-
-  def with_default_event_store(store)
-    previous = AggregateRoot.configuration.default_event_store
-    AggregateRoot.configure do |config|
-      config.default_event_store = store
-    end
-    yield
-    AggregateRoot.configure do |config|
-      config.default_event_store = previous
     end
   end
 end

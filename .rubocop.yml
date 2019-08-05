@@ -1,0 +1,41 @@
+AllCops:
+  TargetRubyVersion: 2.4
+  Exclude:
+    - rails_event_store_active_record/lib/rails_event_store_active_record/generators/templates/*
+    - bounded_context/lib/generators/templates/*
+    - support/helpers/0_18_2_migration_template.rb
+    - contrib/**/*
+    - railseventstore.org/**/*
+    - bounded_context/spec/dummy_*/**/*
+    - '**/bin/*'
+    - ruby_event_store-browser/elm/node_modules/**/*
+
+Lint/UselessAssignment:
+  Exclude:
+    - ruby_event_store/lib/ruby_event_store/spec/event_repository_lint.rb
+    - '**/spec/*'
+
+Lint/HandleExceptions:
+  Enabled: false
+
+Layout/AlignHash:
+  EnforcedHashRocketStyle: table
+  EnforcedColonStyle: table
+
+Layout/AlignParameters:
+  EnforcedStyle: with_fixed_indentation
+
+Layout/AlignArguments:
+  EnforcedStyle: with_fixed_indentation
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented_relative_to_receiver
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma

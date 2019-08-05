@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
-    #  = Class.new(RubyEventStore::Event)
 
 module AggregateRoot
   RSpec.describe Transform do

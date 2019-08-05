@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require_relative '../../support/helpers/protobuf_helper'
-
 
 RSpec.describe 'proto compatibility' do
   include ProtobufHelper
@@ -24,11 +25,13 @@ RSpec.describe 'proto compatibility' do
       class Order
         include AggregateRoot
 
-        def initialize
+        def initialize(uuid)
           @status = :draft
+          @uuid   = uuid
         end
 
         attr_accessor :status
+
         private
 
         def apply_order_created(*)
@@ -45,13 +48,13 @@ RSpec.describe 'proto compatibility' do
   before(:each) { require_protobuf_dependencies }
 
   it "should receive a method call based on a default apply strategy" do
-    order = ResTesting::Order.new
+    order = ResTesting::Order.new(SecureRandom.uuid)
     order_created =
       RubyEventStore::Proto.new(
         event_id: "f90b8848-e478-47fe-9b4a-9f2a1d53622b",
-        data: ResTesting::OrderCreated.new(
+        data:     ResTesting::OrderCreated.new(
           customer_id: 123,
-          order_id: "K3THNX9",
+          order_id:    "K3THNX9",
         )
       )
 
@@ -60,11 +63,11 @@ RSpec.describe 'proto compatibility' do
   end
 
   it "should receive a method call based on a default apply strategy via on handler" do
-    order = ResTesting::Order.new
+    order = ResTesting::Order.new(SecureRandom.uuid)
     order_paid =
       RubyEventStore::Proto.new(
         event_id: "f90b8848-e478-47fe-9b4a-9f2a1d53622b",
-        data: ResTesting::OrderPaid.new
+        data:     ResTesting::OrderPaid.new
       )
 
     order.apply(order_paid)
@@ -72,13 +75,13 @@ RSpec.describe 'proto compatibility' do
   end
 
   it "should raise error for missing apply method based on a default apply strategy" do
-    order = ResTesting::Order.new
+    order = ResTesting::Order.new(SecureRandom.uuid)
     spanish_inquisition =
       RubyEventStore::Proto.new(
         event_id: "f90b8848-e478-47fe-9b4a-9f2a1d53622b",
-        data: ResTesting::SpanishInquisition.new
+        data:     ResTesting::SpanishInquisition.new
       )
 
-    expect{ order.apply(spanish_inquisition) }.to raise_error(AggregateRoot::MissingHandler, "Missing handler method apply_spanish_inquisition on aggregate ResTesting::Order")
+    expect { order.apply(spanish_inquisition) }.to raise_error(AggregateRoot::MissingHandler, "Missing handler method apply_spanish_inquisition on aggregate ResTesting::Order")
   end
 end

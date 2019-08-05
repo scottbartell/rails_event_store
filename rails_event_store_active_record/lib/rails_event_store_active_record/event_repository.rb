@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'activerecord-import'
 
 module RailsEventStoreActiveRecord
@@ -6,7 +8,6 @@ module RailsEventStoreActiveRecord
     SERIALIZED_GLOBAL_STREAM_NAME = "all".freeze
 
     def initialize
-      verify_correct_schema_present
       @repo_reader = EventRepositoryReader.new
     end
 
@@ -124,10 +125,6 @@ module RailsEventStoreActiveRecord
         metadata:   serialized_record.metadata,
         event_type: serialized_record.event_type
       )
-    end
-
-    def verify_correct_schema_present
-      CorrectSchemaVerifier.new.verify
     end
 
     # Overwritten in a sub-class

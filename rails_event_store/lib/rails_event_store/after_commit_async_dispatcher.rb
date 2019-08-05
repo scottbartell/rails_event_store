@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module RailsEventStore
   class AfterCommitAsyncDispatcher
     def initialize(scheduler:)
@@ -11,11 +13,12 @@ module RailsEventStore
     end
 
     def run(&schedule_proc)
-      if ActiveRecord::Base.connection.transaction_open?
-        ActiveRecord::Base.
-          connection.
-          current_transaction.
-          add_record(AsyncRecord.new(self, schedule_proc))
+      transaction = ActiveRecord::Base.connection.current_transaction
+
+      if transaction.joinable?
+        transaction.add_record(
+          AsyncRecord.new(self, schedule_proc)
+        )
       else
         yield
       end
@@ -29,7 +32,6 @@ module RailsEventStore
       "#<#{self.class}:0x#{__id__.to_s(16)} scheduler=#{@scheduler.inspect}>"
     end
 
-    private
     class AsyncRecord
       def initialize(dispatcher, schedule_proc)
         @dispatcher = dispatcher

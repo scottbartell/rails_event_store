@@ -18,6 +18,28 @@ module YourAppName
 end
 ```
 
+#### Removing subscriptions
+
+When you define a new subscription by `subscribe` method execution it will return a lambda that allows to remove defined subscription.
+
+```ruby
+Rails.configuration.event_store = event_store = RailsEventStore::Client.new
+unsubscribe = event_store.subscribe(OrderNotifier.new, to: [OrderCancelled])
+# ...and then when subscription is no longer needed
+unsubscribe.call
+```
+
+Unsubscribe lambda will remove all subscriptions defined by `subscribe` method, when you defined subscription as:
+
+```ruby
+unsubscribe = event_store.subscribe(InvoiceReadModel.new, to: [InvoiceCreated, InvoiceUpdated])
+```
+
+and then execute returned lambda both subscriptions will be removed.
+
+It you need temporary subscription to be defined [read more here](/docs/subscribe/#temporary-subscriptions).
+
+
 ## Synchronous handlers
 
 To subscribe to events publication, you can use `#subscribe` method. It accepts two arguments:
@@ -300,7 +322,7 @@ Often you will want to be able to specify both asynchronous and synchronous disp
 event_store = RailsEventStore::Client.new(
   dispatcher: RubyEventStore::ComposedDispatcher.new(
     RubyEventStore::ImmediateAsyncDispatcher.new(scheduler: CustomScheduler.new), # our asynchronous dispatcher, which expects that subscriber respond to `perform_async` method
-    RubyEventStore::PubSub::Dispatcher.new # regular synchronous dispatcher
+    RubyEventStore::Dispatcher.new # regular synchronous dispatcher
   )
 )
 ```
@@ -377,7 +399,7 @@ end
 event_store = RailsEventStore::Client.new(
   dispatcher: RubyEventStore::ComposedDispatcher.new(
     RailsEventStore::AfterCommitAsyncDispatcher.new(scheduler: RailsEventStore::ActiveJobScheduler.new),
-    RubyEventStore::PubSub::Dispatcher.new
+    RubyEventStore::Dispatcher.new
   )
 )
 

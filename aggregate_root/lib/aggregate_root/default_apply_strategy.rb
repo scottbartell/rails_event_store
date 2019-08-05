@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module AggregateRoot
   MissingHandler = Class.new(StandardError)
 
@@ -29,7 +31,6 @@ module AggregateRoot
       event_type.split(%r{::|\.}).last
     end
 
-    private
     attr_reader :strict, :on_methods
   end
 end

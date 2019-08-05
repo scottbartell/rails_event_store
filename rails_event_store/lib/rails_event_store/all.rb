@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'ruby_event_store'
 require 'rails_event_store/async_handler_helpers'
 require 'rails_event_store/link_by_metadata'
@@ -11,7 +13,7 @@ require 'rails_event_store/browser'
 module RailsEventStore
   Event                       = RubyEventStore::Event
   InMemoryRepository          = RubyEventStore::InMemoryRepository
-  Subscriptions               = RubyEventStore::PubSub::Subscriptions
+  Subscriptions               = RubyEventStore::Subscriptions
   Projection                  = RubyEventStore::Projection
   WrongExpectedEventVersion   = RubyEventStore::WrongExpectedEventVersion
   InvalidExpectedVersion      = RubyEventStore::InvalidExpectedVersion
