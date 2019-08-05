@@ -50,7 +50,7 @@ module RubyEventStore
     specify "#inspect" do
       dispatcher = Dispatcher.new
       object_id = dispatcher.object_id.to_s(16)
-      expect(dispatcher.inspect).to eq("#<RubyEventStore::PubSub::Dispatcher:0x#{object_id}>")
+      expect(dispatcher.inspect).to eq("#<RubyEventStore::Dispatcher:0x#{object_id}>")
     end
 
     private
